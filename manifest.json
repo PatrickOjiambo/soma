@@ -11,14 +11,17 @@
       "32": "icon-32.png"
     }
   },
-  "chrome_url_overrides": {
-    "newtab": "src/pages/newtab/index.html"
-  },
+
   "icons": {
     "128": "icon-128.png"
   },
+  "background": {
+    "service_worker": "src/pages/background/index.ts",
+    "type": "module"
+  },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "content_scripts": [
     {
