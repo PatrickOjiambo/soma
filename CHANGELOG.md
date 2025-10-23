@@ -1,5 +1,104 @@
 # Soma Extension - Change Log
 
+## Module 2: Popup UI - Control Panel (Completed)
+
+### Version 1.1.0 - Popup Implementation
+**Date**: October 23, 2025
+
+#### 🆕 New Files Created
+
+**UI Components:**
+- `src/components/ui.tsx` - Reusable component library
+  - Switch component (toggle control)
+  - Select component (dropdown)
+  - RadioGroup component (visual radio buttons)
+  - Card, Label, Button components
+  - Full TypeScript types and accessibility support
+
+**Popup Interface:**
+- `src/pages/popup/Popup.tsx` - Complete popup implementation (updated)
+  - State management with useState
+  - Settings loading with useEffect
+  - Real-time Chrome storage integration
+  - Message passing to background worker
+  - Loading and saving states
+  - Error handling with reversion
+
+#### ✨ Features Implemented
+
+**User Interface:**
+- Master toggle switch in header (ON/OFF indicator)
+- Language selector with 8 languages and flag emojis
+- Difficulty selector with visual radio cards
+- Status banner showing current learning state
+- Save timestamp indicator
+- Loading spinner during initialization
+- Responsive 384×500px design
+- Modern gradient background
+- Professional card-based layout
+
+**State Management:**
+- Controlled React components
+- Optimistic UI updates
+- Automatic save on change
+- Settings persistence via chrome.storage.local
+- Error recovery with state reversion
+
+**Integration:**
+- Uses `getUserSettings()` from Module 1
+- Sends `UPDATE_SETTINGS` messages to background
+- Leverages `getLanguageName()` and `formatDifficulty()` helpers
+- Full TypeScript type safety with `SomaUserSettings`
+
+#### 🎨 Design System
+
+**Color Palette:**
+- Primary: Blue (#2563eb)
+- Background: Gradient blue-50 to indigo-50
+- Text: Gray-900 for primary, Gray-500 for secondary
+- Status: Blue-50 for info banner
+
+**Typography:**
+- Header: 2xl bold
+- Labels: sm font-medium
+- Descriptions: xs text-gray-500
+
+**Components:**
+- Rounded corners (lg for cards, full for toggles)
+- Subtle shadows for depth
+- Focus rings for accessibility
+- Smooth transitions (200ms)
+
+#### 🔧 Technical Improvements
+
+**Accessibility:**
+- ARIA labels on all controls
+- Keyboard navigation support
+- Focus indicators (ring-2)
+- Screen reader friendly
+- Disabled states clearly indicated
+
+**Performance:**
+- Optimistic updates for instant feedback
+- Async operations don't block UI
+- Minimal re-renders with proper state management
+
+**Error Handling:**
+- Try-catch blocks on all async operations
+- Console error logging
+- Automatic state reversion on failure
+- User-friendly error states
+
+#### 📊 Code Metrics
+
+- Components created: 6
+- Total lines: ~450
+- Languages supported: 8
+- Difficulty levels: 3
+- TypeScript coverage: 100%
+
+---
+
 ## Module 1: Core State & Storage Management (Completed)
 
 ### Version 1.0.0 - Initial Foundation
