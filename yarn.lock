@@ -941,6 +941,11 @@
     "@types/filesystem" "*"
     "@types/har-format" "*"
 
+"@types/dom-chromium-ai@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@types/dom-chromium-ai/-/dom-chromium-ai-0.0.10.tgz#4adb3767fb01cf3c41e07add5620e3a1f3c1d1e1"
+  integrity sha512-9CSfOOIx6/pyOjsp6VTtai18Bjh0mS2XWwiXn7/rBJIxX1Y/1onJe+1MqPVo6bsEUE3rZlxQHEAg1yRKRFTkWg==
+
 "@types/estree@1.0.7", "@types/estree@^1.0.6":
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.7.tgz#4158d3105276773d5b7695cd4834b1722e4f37a8"
