@@ -3,8 +3,12 @@
  * Intelligently selects and replaces words using Chrome AI APIs
  */
 
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import Tooltip from './Tooltip';
 import { getUserSettings } from '../../utils/storage';
 import { SomaUserSettings } from '../../types';
+
 import {
   extractPageText,
   replaceWordsInDOM,
@@ -19,6 +23,97 @@ import './style.css';
 
 console.log('[Soma Content] AI-powered content script loaded');
 
+// Inject Tooltip root and mount React Tooltip (listens to custom events)
+function mountTooltipRoot() {
+  try {
+    if (!document.getElementById('soma-tooltip-root')) {
+      const container = document.createElement('div');
+      container.id = 'soma-tooltip-root';
+      document.body.appendChild(container);
+      const root = createRoot(container);
+      root.render(React.createElement(Tooltip));
+      console.log('[Soma Content] Tooltip root mounted');
+    }
+  } catch (e) {
+    console.warn('[Soma Content] Could not mount tooltip root', e);
+  }
+}
+
+mountTooltipRoot();
+
+// Event delegation for soma-word interactions
+function handleMouseOver(event: MouseEvent) {
+  const el = event.target as HTMLElement | null;
+  if (!el) return;
+  if (el.tagName.toLowerCase() === 'soma-word') {
+    const originalWord = el.getAttribute('data-original') || '';
+    const translatedWord = el.textContent || '';
+    const rect = el.getBoundingClientRect();
+    const x = rect.left;
+    const y = rect.top;
+    window.dispatchEvent(new CustomEvent('soma-tooltip-show', { detail: { originalWord, translatedWord, x, y } }));
+  }
+}
+
+function handleMouseOut(event: MouseEvent) {
+  const el = event.target as HTMLElement | null;
+  if (!el) return;
+  if (el.tagName.toLowerCase() === 'soma-word') {
+    window.dispatchEvent(new CustomEvent('soma-tooltip-hide'));
+  }
+}
+
+async function handleClick(event: MouseEvent) {
+  const el = event.target as HTMLElement | null;
+  if (!el) return;
+  if (el.tagName.toLowerCase() === 'soma-word') {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const originalWord = el.getAttribute('data-original') || '';
+    const translatedWord = el.textContent || '';
+    // Get context: prefer closest paragraph
+    const paragraph = el.closest('p') || el.parentElement;
+    const contextText = paragraph ? (paragraph.textContent || '') : document.body.textContent || '';
+
+    // Generate example sentence with on-device AI (LanguageModel wrapper)
+    let example = '';
+    try {
+      //TODO: Implement AI example generation
+      example = "Example sentence using the word " + translatedWord;
+    } catch (e) {
+      console.warn('[Soma Content] Example generation failed', e);
+      example = `${translatedWord} — example.`;
+    }
+
+    // Dispatch expand event to show expanded tooltip with AI sentence
+    const rect = el.getBoundingClientRect();
+    window.dispatchEvent(new CustomEvent('soma-tooltip-expand', { detail: { contextSentence: example, x: rect.left, y: rect.top } }));
+
+    // Pronounce using Web Speech API
+    try {
+      const utter = new SpeechSynthesisUtterance(translatedWord || '');
+      utter.lang = currentSettings?.targetLanguage || 'en-US';
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utter);
+    } catch (e) {
+      console.warn('[Soma Content] Speech synthesis failed', e);
+    }
+
+    // Trigger logging: send message to background (Module 5 will handle persistence)
+    try {
+      chrome.runtime.sendMessage({ type: 'LOG_WORD', payload: { originalWord, translatedWord } });
+    } catch (e) {
+      console.warn('[Soma Content] Could not send log message', e);
+    }
+  }
+}
+
+// Attach delegated listeners
+document.addEventListener('mouseover', handleMouseOver);
+document.addEventListener('mouseout', handleMouseOut);
+document.addEventListener('click', handleClick, true);
+
 // State tracking
 let isProcessed = false;
 let currentSettings: SomaUserSettings | null = null;
@@ -27,13 +122,18 @@ let isProcessing = false;
 /**
  * Main AI-powered word processing function
  */
-async function processPageWithAI(): Promise<void> {
+async function processPageWithAI(force: boolean = false): Promise<void> {
   // Prevent concurrent processing
   if (isProcessing) {
     console.log('[Soma Content] Already processing, skipping...');
     return;
   }
-
+  
+  // If we've already successfully processed the page and caller didn't force, skip
+  if (isProcessed && !force) {
+    console.log('[Soma Content] Page already processed, skipping repeated run');
+    return;
+  }
   isProcessing = true;
 
   try {
@@ -133,8 +233,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('[Soma Content] Settings changed, reprocessing page with AI');
     currentSettings = message.payload;
 
-    // Reprocess the page with new settings
-    processPageWithAI()
+    // Reprocess the page with new settings (force a re-run)
+    processPageWithAI(true)
       .then(() => {
         sendResponse({ success: true });
       })
@@ -178,6 +278,8 @@ const mutationObserver = new MutationObserver((mutations) => {
   if (!currentSettings?.isEnabled || isProcessing) {
     return;
   }
+  // If we've already processed successfully, don't auto-reprocess (avoids loops from our own DOM edits)
+  if (isProcessed) return;
 
   // Debounce: wait 2 seconds after last mutation
   if (mutationTimeout) {
@@ -196,5 +298,15 @@ processPageWithAI().then(() => {
     childList: true,
     subtree: true,
   });
+});
+
+// Prevent the mutation observer from re-running processing if we've already done it
+// (This avoids the AI workflow being triggered repeatedly due to DOM changes created by replacements)
+mutationObserver.disconnect();
+processPageWithAI().then(() => {
+  // Re-attach observer only if extension remains enabled
+  if (currentSettings?.isEnabled) {
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+  }
 });
 
