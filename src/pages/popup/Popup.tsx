@@ -130,7 +130,7 @@ function Popup() {
   }
 
   return (
-    <div className="w-96 min-h-[500px] bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="w-full min-h-[500px] bg-gradient-to-br from-blue-50 to-indigo-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-2 py-4 shadow-sm">
         <div className="flex items-center justify-between">

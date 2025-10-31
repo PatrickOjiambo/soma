@@ -8,12 +8,12 @@
   "action": {
     "default_popup": "src/pages/popup/index.html",
     "default_icon": {
-      "32": "icon-32.png"
+      "32": "tometo-32.png"
     }
   },
 
   "icons": {
-    "128": "icon-128.png"
+    "128": "tometo-128.png"
   },
   "background": {
     "service_worker": "src/pages/background/index.ts",
@@ -43,8 +43,8 @@
     {
       "resources": [
         "contentStyle.css",
-        "icon-128.png",
-        "icon-32.png"
+        "tometo-32.png",
+        "tometo-128.png"
       ],
       "matches": []
     }

@@ -126,11 +126,13 @@ ${criteria}
 RULES:
 1. Return ONLY a valid JSON array of strings
 2. The words you return should be in English and present in the word list you will be given.
-2. Select EXACTLY ${wordCount} words (no more, no less)
+2. Select EXACTLY ${wordCount} words (NO MORE, NO LESS)
 3. Do NOT include explanations or comments
 4. Do NOT include stop words or articles
 5. Words should be appropriate for translation to ${languageName}. The translation will be done with a separate AI model.
-6. Prioritize words that are meaningful and useful for learners
+6. Prioritize words that are meaningful and useful for learners.
+7. If you cannot find enough suitable words, return as many as you can up to ${wordCount}.
+
 
 WORD LIST:
 ${words.slice(0, 200).join(', ')}

@@ -62,6 +62,57 @@ function handleMouseOut(event: MouseEvent) {
     window.dispatchEvent(new CustomEvent('soma-tooltip-hide'));
   }
 }
+async function getExampleSentense(translateWord: string, contextText: string): Promise<string> {
+  try {
+    let session;
+    const availability = await LanguageModel.availability()
+    console.log('[Soma AI] Language model availability:', availability);
+
+    if (availability === 'available') {
+      console.log('[Soma AI] Model is available, creating session...');
+      session = await LanguageModel.create({
+        monitor(m) {
+          m.addEventListener('downloadprogress', (e) => {
+            console.log(`[Soma AI] Model download progress: ${Math.round(e.loaded * 100)}%`);
+          });
+        },
+      });
+    } else if (availability === 'downloadable') {
+      console.log('[Soma AI] Model is downloadable. Checking for user activation...');
+
+      if (navigator.userActivation.isActive) {
+        console.log('[Soma AI] User activation detected, creating session (will trigger download)...');
+        session = await LanguageModel.create({
+          expectedInputs: [{ type: "text", languages: ["en"] }],
+          expectedOutputs: [{ type: "text", languages: ["en"] }],
+          monitor(m) {
+            m.addEventListener('downloadprogress', (e) => {
+              console.log(`[Soma AI] Model download progress: ${Math.round(e.loaded * 100)}%`);
+            });
+          },
+        });
+        console.log('[Soma AI] Model downloaded and session created.');
+      } else {
+        console.warn('[Soma AI] Model is downloadable, but user activation is required. Using fallback.');
+        return translateWord;
+      }
+    } else {
+      // This covers 'unavailable' and 'downloading'
+      console.warn(`[Soma AI] Language model status is '${availability}'. Using fallback.`);
+      return translateWord;
+
+    }
+    const promptExample = `Provide an example sentence using the word "${translateWord}" in context. Keep it concise and relevant to the following text: "${contextText.substring(0, 200)}" 
+                        OUTPUT ONLY the example sentence.`;
+    const response = await session?.prompt(promptExample);
+    return response || '';
+  }
+  catch (e) {
+    console.warn('[Soma Content] Example generation failed', e);
+    return `${translateWord} — example.`;
+  }
+
+}
 
 async function handleClick(event: MouseEvent) {
   const el = event.target as HTMLElement | null;
@@ -78,14 +129,14 @@ async function handleClick(event: MouseEvent) {
 
     // Generate example sentence with on-device AI (LanguageModel wrapper)
     let example = '';
+    let session;
+
     try {
-      //TODO: Implement AI example generation
-      example = "Example sentence using the word " + translatedWord;
+      example = await getExampleSentense(translatedWord, contextText);
     } catch (e) {
       console.warn('[Soma Content] Example generation failed', e);
       example = `${translatedWord} — example.`;
     }
-
     // Dispatch expand event to show expanded tooltip with AI sentence
     const rect = el.getBoundingClientRect();
     window.dispatchEvent(new CustomEvent('soma-tooltip-expand', { detail: { contextSentence: example, x: rect.left, y: rect.top } }));
@@ -128,7 +179,7 @@ async function processPageWithAI(force: boolean = false): Promise<void> {
     console.log('[Soma Content] Already processing, skipping...');
     return;
   }
-  
+
   // If we've already successfully processed the page and caller didn't force, skip
   if (isProcessed && !force) {
     console.log('[Soma Content] Page already processed, skipping repeated run');
