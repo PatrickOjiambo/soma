@@ -67,40 +67,79 @@ export default function Tooltip() {
 
   if (!state.isVisible) return <div style={{ display: 'none' }} />;
 
+  // --- Style Definitions ---
+
   const style: React.CSSProperties = {
     position: 'fixed',
-    left: state.x + 8,
-    top: state.y + 8,
+    left: state.x + 12, // Increased offset from cursor
+    top: state.y + 12,  // Increased offset from cursor
     zIndex: 999999,
-    background: 'white',
-    color: '#111827',
-    border: '1px solid rgba(0,0,0,0.08)',
-    borderRadius: 8,
-    padding: '8px 12px',
-    boxShadow: '0 6px 18px rgba(15,23,42,0.12)',
-    minWidth: 160,
+    background: '#FFFFFF', // Clean white background
+    color: '#1F2937',     // Dark text (Tailwind gray-800)
+    border: '1px solid #E5E7EB', // Light gray border (Tailwind gray-200)
+    borderRadius: 12,          // Softer corners
+    padding: '14px 18px',    // More breathing room
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.05)', // Softer, lighter shadow
+    minWidth: 180,
     maxWidth: 420,
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    lineHeight: 1.5,
   };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 12,
+    color: '#6B7280', // Muted gray (Tailwind gray-500)
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    background: '#F9FAFB', // Very light gray (Tailwind gray-50)
+    color: '#374151',      // Darker text (Tailwind gray-700)
+    border: '1px solid #E5E7EB', // (Tailwind gray-200)
+    borderRadius: 6,
+    padding: '6px 12px',
+    fontSize: 14,
+    cursor: 'pointer',
+    fontWeight: 500,
+  };
+
+  const contextStyle: React.CSSProperties = {
+    fontStyle: 'italic',
+    color: '#4B5563', // (Tailwind gray-600)
+    borderLeft: '3px solid #D1D5DB', // (Tailwind gray-300)
+    paddingLeft: '12px',
+    margin: '4px 0',
+  };
+
+  // --- End Style Definitions ---
 
   return (
     <div style={style} data-soma-tooltip>
       {!state.expanded ? (
         <div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>Original</div>
-          <div style={{ fontWeight: 600 }}>{state.originalWord}</div>
-          <div style={{ marginTop: 6, fontSize: 12, color: '#6b7280' }}>Translation</div>
-          <div>{state.translatedWord}</div>
+          <div style={labelStyle}>Original</div>
+          <div style={{ fontWeight: 600, fontSize: 18, color: '#111827' }}>
+            {state.originalWord}
+          </div>
+          <div style={{ ...labelStyle, marginTop: 10 }}>Translation</div>
+          <div style={{ fontSize: 16 }}>{state.translatedWord}</div>
         </div>
       ) : (
         <div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>Original</div>
-          <div style={{ fontWeight: 600 }}>{state.originalWord}</div>
-          <div style={{ marginTop: 6, fontSize: 12, color: '#6b7280' }}>Translation</div>
-          <div style={{ marginBottom: 8 }}>{state.translatedWord}</div>
-          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>Example</div>
-          <div style={{ fontStyle: 'italic' }}>{state.contextSentence}</div>
-          <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+          <div style={labelStyle}>Original</div>
+          <div style={{ fontWeight: 600, fontSize: 18, color: '#111827' }}>
+            {state.originalWord}
+          </div>
+          <div style={{ ...labelStyle, marginTop: 10 }}>Translation</div>
+          <div style={{ fontSize: 16, marginBottom: 12 }}>
+            {state.translatedWord}
+          </div>
+          <div style={{ ...labelStyle, marginBottom: 4 }}>Example</div>
+          <div style={contextStyle}>{state.contextSentence}</div>
+          <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
             <button
+              style={buttonStyle}
               onClick={() => {
                 try {
                   const utter = new SpeechSynthesisUtterance(state.translatedWord || '');
@@ -115,6 +154,7 @@ export default function Tooltip() {
               🔊 Pronounce
             </button>
             <button
+              style={{ ...buttonStyle, background: '#F3F4F6' }} // Secondary button style
               onClick={() => {
                 // Close tooltip
                 window.dispatchEvent(new CustomEvent('soma-tooltip-hide'));

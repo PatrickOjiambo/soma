@@ -229,7 +229,38 @@ export async function selectWordsWithAI(
       const validWords = selectedWords.filter(word =>
         candidateWords.includes(word.toLowerCase())
       );
+      // Normalize existing selections to lowercase to match candidateWords
+      for (let i = 0; i < validWords.length; i++) {
+        validWords[i] = validWords[i].toLowerCase();
+      }
 
+      const targetCount = getWordCountForDifficulty(difficulty);
+
+      // If AI returned too many, trim to the target
+      if (validWords.length > targetCount) {
+        validWords.splice(targetCount);
+      }
+
+      // If fewer than required, fill with random, non-duplicate candidates
+      if (validWords.length < targetCount) {
+        const needed = targetCount - validWords.length;
+        const selectedSet = new Set(validWords.map(w => w.toLowerCase()));
+
+        // Build pool of remaining candidates (lowercased) excluding already selected
+        const pool = candidateWords
+          .map(w => w.toLowerCase())
+          .filter(w => !selectedSet.has(w));
+
+        // Shuffle pool (Fisher-Yates)
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        // Take up to the needed amount
+        const toAdd = pool.slice(0, needed);
+        toAdd.forEach(w => validWords.push(w));
+      }
       console.log('[Soma AI] AI selected', validWords.length, 'words');
       return validWords;
     } catch (parseError) {
