@@ -1,5 +1,6 @@
-To create an optimized production build, run `yarn build chrome`, or
-`npm run build.
+Start by cloning this project with `git clone https://github.com/PatrickOjiambo/soma.git`
+Create an optimized production build by running `yarn build chrome`, or
+`npm run build`.
 
 #### Load your extension
 1. Open - Chrome browser
